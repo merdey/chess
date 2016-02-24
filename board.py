@@ -34,19 +34,48 @@ class Board:
 
             self.board[y][x] = Piece(color, rank)
 
-    def handle_click(self, mouse_pos):
+    def handle_click(self, mouse_pos, player):
+        '''Return True if move was made'''
+        click_x, click_y = self.get_tile_pos(mouse_pos[0], mouse_pos[1])
+        clicked_piece = self.board[click_y][click_x]
+
+        # If a piece is already selected, try to move to clicked tile
         if self.selected_piece:
-            self.selected_piece.state = 'normal'
+            if self.can_move(self.selected_piece, click_x, click_y):
+                self._move_piece(self.selected_piece, click_x, click_y)
+                self._clear_selection()
+                return True
+            else:
+                self._clear_selection()
+                return False
 
-        tile_x, tile_y = self.get_tile_pos(mouse_pos[0], mouse_pos[1])
-        clicked_piece = self.board[tile_y][tile_x]
-        if clicked_piece:
-            clicked_piece.state = 'selected'
-            self.selected_piece = clicked_piece
+        # Select piece if user clicked a piece of their color
+        if clicked_piece and clicked_piece.color == player:
+            self._select_piece(clicked_piece)
 
-    def get_tile_pos(self, pix_x, pix_y):
-        # convert from pixel x/y to tile x/y
-        return int(pix_x / tile_size), int(pix_y / tile_size)
+    def _select_piece(self, clicked_piece):
+        clicked_piece.state = 'selected'
+        self.selected_piece = clicked_piece
+
+    def _clear_selection(self):
+        self.selected_piece.state = 'normal'
+        self.selected_piece = None
+
+    def _move_piece(self, piece, new_x, new_y):
+        old_x, old_y = self.get_piece_pos(piece)
+        self.board[new_y][new_x] = piece
+        self.board[old_y][old_x] = None
+        print('moved from (%s, %s) to (%s, %s)' % (old_x, old_y, new_x, new_y))
+
+    def can_move(self, piece, new_x, new_y):
+        piece_x, piece_y = self.get_piece_pos(piece)
+        target = self.board[new_y][new_x]
+
+        #TODO: handle castling
+        if target and target.color == piece.color:
+            return False
+
+        return self.selected_piece.is_valid_move(piece_x, piece_y, new_x, new_y)
 
     def draw(self, screen):
         self._draw_tiling(screen)
@@ -67,6 +96,15 @@ class Board:
             piece = self.board[y][x]
             if piece is not None:
                 piece.draw(screen, x, y)
+
+    def get_tile_pos(self, pix_x, pix_y):
+        # convert from pixel x/y to tile x/y
+        return int(pix_x / tile_size), int(pix_y / tile_size)
+
+    def get_piece_pos(self, piece):
+        for x, y in _enumerate_coordinates(self.board):
+            if piece == self.board[y][x]:
+                return x, y
 
 
 def _construct_board():

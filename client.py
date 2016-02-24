@@ -20,6 +20,7 @@ class Client:
         self.board = Board()
         self.board.set_pieces()
         self.state = 'game running'
+        self.active_player = 'White'
 
     def handle_click(self, mouse_pos):
         for button in self.buttons:
@@ -28,7 +29,12 @@ class Client:
                 return
 
         if self.state == 'game running':
-            self.board.handle_click(mouse_pos)
+            moved = self.board.handle_click(mouse_pos, self.active_player)
+            if moved: self.swap_active_player()
+            print('Active Player', self.active_player)
+
+    def swap_active_player(self):
+        self.active_player = 'Black' if self.active_player == 'White' else 'White'
 
     def draw(self):
         self.screen.fill((255, 255, 255))
@@ -44,17 +50,17 @@ class Client:
         pygame.display.update()
 
     def run(self):
-        for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                self.handle_click(pygame.mouse.get_pos())
-            elif event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    self.handle_click(pygame.mouse.get_pos())
+                elif event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
 
-        self.draw()
+            self.draw()
 
-        self.fps_clock.tick(50)
-        self.run()
+            self.fps_clock.tick(50)
 
 
 class Button:

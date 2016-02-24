@@ -35,3 +35,6 @@ class Piece:
 
         pygame.draw.rect(screen, border_color, border)
         pygame.draw.rect(screen, color, piece)
+
+    def is_valid_move(self, current_x, current_y, target_x, target_y):
+        return True
