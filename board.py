@@ -6,6 +6,7 @@ from piece import Piece
 class Board:
     def __init__(self):
         self.board = _construct_board()
+        self.selected_piece = None
 
     def set_pieces(self):
         for x, y in _enumerate_coordinates(self.board):
@@ -32,6 +33,20 @@ class Board:
                 rank = 'King'
 
             self.board[y][x] = Piece(color, rank)
+
+    def handle_click(self, mouse_pos):
+        if self.selected_piece:
+            self.selected_piece.state = 'normal'
+
+        tile_x, tile_y = self.get_tile_pos(mouse_pos[0], mouse_pos[1])
+        clicked_piece = self.board[tile_y][tile_x]
+        if clicked_piece:
+            clicked_piece.state = 'selected'
+            self.selected_piece = clicked_piece
+
+    def get_tile_pos(self, pix_x, pix_y):
+        # convert from pixel x/y to tile x/y
+        return int(pix_x / tile_size), int(pix_y / tile_size)
 
     def draw(self, screen):
         self._draw_tiling(screen)

@@ -25,6 +25,10 @@ class Client:
         for button in self.buttons:
             if button.was_clicked(mouse_pos):
                 button.perform_actions()
+                return
+
+        if self.state == 'game running':
+            self.board.handle_click(mouse_pos)
 
     def draw(self):
         self.screen.fill((255, 255, 255))
