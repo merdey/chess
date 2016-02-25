@@ -2,6 +2,7 @@ import pygame
 import sys
 
 from board import Board
+from constants import tile_size, piece_inset
 
 
 class Client:
@@ -29,9 +30,14 @@ class Client:
                 return
 
         if self.state == 'game running':
-            moved = self.board.handle_click(mouse_pos, self.active_player)
+            x, y = self.get_tile_pos(*mouse_pos)
+            moved = self.board.handle_click(self.active_player, x, y)
             if moved: self.swap_active_player()
             print('Active Player', self.active_player)
+
+    def get_tile_pos(self, pix_x, pix_y):
+        # convert from pixel x/y to tile x/y
+        return int(pix_x / tile_size), int(pix_y / tile_size)
 
     def swap_active_player(self):
         self.active_player = 'Black' if self.active_player == 'White' else 'White'
@@ -43,11 +49,59 @@ class Client:
             pass
         elif self.state == 'game running':
             self.screen.fill((0, 255, 0))
-            self.board.draw(self.screen)
+            self.draw_board()
 
         for button in self.buttons: button.draw(self.screen)
 
         pygame.display.update()
+
+    def draw_board(self):
+        self._draw_tiling()
+        self._draw_pieces()
+
+    def _draw_tiling(self):
+        for x, y in self.board.enumerate_coordinates():
+            if x % 2 == y % 2:
+                color = (255, 255, 255)
+            else:
+                color = (102, 51, 0)
+
+            rect = (x * tile_size, y * tile_size, tile_size, tile_size)
+            pygame.draw.rect(self.screen, color, rect)
+
+    def _draw_pieces(self):
+        for x, y in self.board.enumerate_coordinates():
+            piece = self.board.get_piece(x, y)
+            if piece is not None:
+                self._draw_piece(piece, x, y)
+
+    def _draw_piece(self, piece, x, y):
+        color_map = {
+            'Pawn': (128, 128, 128),
+            'Rook': (255, 0, 0),
+            'Knight': (0, 0, 255),
+            'Bishop': (0, 255, 0),
+            'Queen': (255, 0, 255),
+            'King': (255, 255, 255)
+        }
+        color = color_map.get(piece.rank)
+
+        border = (
+            x * tile_size + piece_inset - 1,
+            y * tile_size + piece_inset - 1,
+            tile_size - 2 * piece_inset + 2,
+            tile_size - 2 * piece_inset + 2,
+        )
+        border_color = (255, 255, 0) if piece.state == 'selected' else (0, 0, 0)
+        piece = (
+            x * tile_size + piece_inset,
+            y * tile_size + piece_inset,
+            tile_size - 2 * piece_inset,
+            tile_size - 2 * piece_inset,
+        )
+
+        pygame.draw.rect(self.screen, border_color, border)
+        pygame.draw.rect(self.screen, color, piece)
 
     def run(self):
         while True:
