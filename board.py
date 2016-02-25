@@ -1,6 +1,6 @@
 from constants import tile_size
 from piece import Piece
-from utils import construct_board, enumerate_coordinates
+from utils import construct_board, enumerate_coordinates, validate_move
 
 class Board:
     def __init__(self):
@@ -40,7 +40,7 @@ class Board:
 
         # If a piece is already selected, try to move to clicked tile
         if self.selected_piece:
-            if self.can_move(self.selected_piece, x, y):
+            if validate_move(player, self, self.selected_piece, x, y):
                 self._move_piece(self.selected_piece, x, y)
                 self._clear_selection()
                 return True
