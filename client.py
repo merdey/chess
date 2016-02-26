@@ -12,12 +12,9 @@ class Client:
         pygame.display.set_caption("Game of Life")
         self.fps_clock = pygame.time.Clock()
         self.state = 'main menu'
-        self.buttons = [
-            Button(0, 0, 100, 50, 'Start', self.start_game)
-        ]
+        self.buttons = []
 
     def start_game(self):
-        self.buttons = []
         self.board = Board()
         self.board.set_pieces()
         self.state = 'game running'
@@ -31,8 +28,11 @@ class Client:
 
         if self.state == 'game running':
             x, y = self.get_tile_pos(*mouse_pos)
-            moved = self.board.handle_click(self.active_player, x, y)
-            if moved: self.swap_active_player()
+            res = self.board.handle_click(self.active_player, x, y)
+            if res in ('move', 'capture', 'castle', 'en_passant'):
+                self.swap_active_player()
+            elif res == 'game_over':
+                self.state = 'game over'
             print('Active Player', self.active_player)
 
     def get_tile_pos(self, pix_x, pix_y):
@@ -46,11 +46,13 @@ class Client:
         self.screen.fill((255, 255, 255))
 
         if self.state == 'main menu':
-            pass
+            self.buttons = [Button(200, 200, 200, 200, 'Start', self.start_game)]
         elif self.state == 'game running':
+            self.buttons = []
             self.screen.fill((0, 255, 0))
             self.draw_board()
-            pygame.display.flip()
+        elif self.state == 'game over':
+            self.buttons = [Button(200, 200, 200, 200, 'Start Again', self.start_game)]
 
         for button in self.buttons: button.draw(self.screen)
 
@@ -75,6 +77,7 @@ class Client:
             piece = self.board.get_piece(x, y)
             if piece is not None:
                 self._draw_piece(piece, x, y)
+        pygame.display.flip()
 
     def _draw_piece(self, piece, x, y):
         if piece.state == 'selected':
@@ -91,7 +94,7 @@ class Client:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    self.handle_click(pygame.mouse.get_pos())
+                    res = self.handle_click(pygame.mouse.get_pos())
                 elif event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()

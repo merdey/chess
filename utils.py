@@ -14,11 +14,11 @@ def validate_move(player, board, piece, x, y):
 
     moves_allowed, attacks_allowed = get_allowed_moves(player, piece, current_x, current_y)
     if target_tile is None and (x, y) in moves_allowed:
-        return True
+        return 'move'
     elif target_tile and (x, y) in attacks_allowed:
-        return True
+        return 'game_over' if target_tile.rank == 'King' else 'capture'
     else:
-        return False
+        return 'illegal_move'
             
 
 def get_allowed_moves(player, piece, x, y):

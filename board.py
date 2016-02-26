@@ -40,13 +40,20 @@ class Board:
 
         # If a piece is already selected, try to move to clicked tile
         if self.selected_piece:
-            if validate_move(player, self, self.selected_piece, x, y):
+            res = validate_move(player, self, self.selected_piece, x, y)
+            if res == 'move' or res == 'capture':
                 self._move_piece(self.selected_piece, x, y)
                 self._clear_selection()
-                return True
-            else:
+                return res
+            elif res == 'castle':
+                # self.castle()
                 self._clear_selection()
-                return False
+            elif res == 'en_passant':
+                # self.en_passant()
+                self._clear_selection()
+            elif res == 'illegal_move':
+                self._clear_selection()
+            return res
 
         # Select piece if user clicked a piece of their color
         if clicked_piece and clicked_piece.color == player:
