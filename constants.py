@@ -1,2 +1,3 @@
 tile_size = 80
-piece_inset = 15
+piece_size = 50
+piece_inset = (tile_size - piece_size) / 2
