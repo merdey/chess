@@ -1,3 +1,6 @@
+from constants import tile_size
+
+
 def construct_board():
     return [[None] * 8 for i in range(8)]
 
@@ -108,3 +111,8 @@ def get_allowed_moves(player, piece, x, y):
             attacks_allowed.add(a)
 
     return moves_allowed, attacks_allowed
+
+
+def get_tile_pos(pix_x, pix_y):
+    # convert from pixel x/y to tile x/y
+    return int(pix_x / tile_size), int(pix_y / tile_size)

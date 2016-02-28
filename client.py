@@ -4,6 +4,7 @@ import sys
 
 from board import Board
 from constants import tile_size, piece_inset, piece_size, piece_ranks
+from utils import get_tile_pos
 
 
 class Client:
@@ -38,20 +39,13 @@ class Client:
                 return
 
         if self.state == 'game running':
-            x, y = self.get_tile_pos(*mouse_pos)
+            x, y = get_tile_pos(*mouse_pos)
             res = self.board.handle_click(self.active_player, x, y)
             if res in ('move', 'capture', 'castle', 'en_passant'):
-                self.swap_active_player()
+                self.active_player = 'Black' if self.active_player == 'White' else 'White'
             elif res == 'game_over':
                 self.state = 'game over'
             print('Active Player', self.active_player)
-
-    def get_tile_pos(self, pix_x, pix_y):
-        # convert from pixel x/y to tile x/y
-        return int(pix_x / tile_size), int(pix_y / tile_size)
-
-    def swap_active_player(self):
-        self.active_player = 'Black' if self.active_player == 'White' else 'White'
 
     def draw(self):
         self.screen.fill((255, 255, 255))
