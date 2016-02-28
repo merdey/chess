@@ -6,6 +6,7 @@ class Board:
     def __init__(self):
         self.board = construct_board()
         self.selected_piece = None
+        self.move_history = []
 
     def set_pieces(self):
         for x, y in enumerate_coordinates(self.board):
@@ -42,7 +43,7 @@ class Board:
         if self.selected_piece:
             res = validate_move(player, self, self.selected_piece, x, y)
             if res == 'move' or res == 'capture':
-                self._move_piece(self.selected_piece, x, y)
+                self.move_piece(self.selected_piece, x, y)
                 self._clear_selection()
                 return res
             elif res == 'castle':
@@ -67,20 +68,23 @@ class Board:
         self.selected_piece.state = 'normal'
         self.selected_piece = None
 
-    def _move_piece(self, piece, new_x, new_y):
+    def move_piece(self, piece, new_x, new_y):
         old_x, old_y = self.get_piece_pos(piece)
         self.board[new_y][new_x] = piece
         self.board[old_y][old_x] = None
-        print('moved from (%s, %s) to (%s, %s)' % (old_x, old_y, new_x, new_y))
 
-    def can_move(self, piece, new_x, new_y):
-        piece_x, piece_y = self.get_piece_pos(piece)
-        target = self.board[new_y][new_x]
+        self.move_history.append((
+            piece,
+            (old_x, old_y),
+            (new_x, new_y),
+        ))
 
-        if target and target.color == piece.color:
-            return False
+    def has_piece_moved(self, piece):
+        for move in self.move_history:
+            if move[0] == piece:
+                return True
+        return False
 
-        return self.selected_piece.is_valid_move(piece_x, piece_y, new_x, new_y)
 
     def get_piece_pos(self, piece):
         for x, y in enumerate_coordinates(self.board):

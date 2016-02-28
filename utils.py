@@ -15,7 +15,7 @@ def validate_move(player, board, piece, x, y):
     current_x, current_y = board.get_piece_pos(piece)
     target_tile = board.get_piece(x, y)
 
-    moves_allowed, attacks_allowed = get_allowed_moves(player, piece, current_x, current_y)
+    moves_allowed, attacks_allowed = get_allowed_moves(player, board, piece, current_x, current_y)
     if target_tile is None and (x, y) in moves_allowed:
         return 'move'
     elif target_tile and (x, y) in attacks_allowed:
@@ -24,17 +24,21 @@ def validate_move(player, board, piece, x, y):
         return 'illegal_move'
             
 
-def get_allowed_moves(player, piece, x, y):
+def get_allowed_moves(player, board, piece, x, y):
     moves_allowed = set()
     attacks_allowed = set()
 
     if piece.rank == 'Pawn':
         if player == 'White':
             moves_allowed.add((x, y + 1))
+            if not board.has_piece_moved(piece):
+                moves_allowed.add((x, y + 2))
             attacks_allowed.add((x + 1, y + 1))
             attacks_allowed.add((x - 1, y + 1))
         else:
             moves_allowed.add((x, y - 1))
+            if not board.has_piece_moved(piece):
+                moves_allowed.add((x, y - 2))
             attacks_allowed.add((x + 1, y - 1))
             attacks_allowed.add((x - 1, y - 1))
     elif piece.rank == 'Rook':
