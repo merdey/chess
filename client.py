@@ -60,7 +60,7 @@ class Client:
         clicked_piece = self.board.get_piece(x, y)
 
         if self.selected_piece:
-            res = validate_move(self.active_player, self.board, self.selected_piece, x, y)
+            res = validate_move(self.board, self.selected_piece, x, y)
             if res == 'move' or res == 'capture':
                 self.board.move_piece(self.selected_piece, x, y)
                 self._clear_selection()
