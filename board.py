@@ -1,11 +1,10 @@
 from constants import tile_size
 from piece import Piece
-from utils import construct_board, enumerate_coordinates, validate_move
+from utils import construct_board, enumerate_coordinates
 
 class Board:
     def __init__(self):
         self.board = construct_board()
-        self.selected_piece = None
         self.move_history = []
 
     def set_pieces(self):
@@ -33,40 +32,6 @@ class Board:
                 rank = 'King'
 
             self.board[y][x] = Piece(color, rank)
-
-    def handle_click(self, player, x, y):
-        '''Return True if move was made'''
-        clicked_piece = self.board[y][x]
-        print(x, y, clicked_piece)
-
-        # If a piece is already selected, try to move to clicked tile
-        if self.selected_piece:
-            res = validate_move(player, self, self.selected_piece, x, y)
-            if res == 'move' or res == 'capture':
-                self.move_piece(self.selected_piece, x, y)
-                self._clear_selection()
-                return res
-            elif res == 'castle':
-                # self.castle()
-                self._clear_selection()
-            elif res == 'en_passant':
-                # self.en_passant()
-                self._clear_selection()
-            elif res == 'illegal_move':
-                self._clear_selection()
-            return res
-
-        # Select piece if user clicked a piece of their color
-        if clicked_piece and clicked_piece.color == player:
-            self._select_piece(clicked_piece)
-
-    def _select_piece(self, clicked_piece):
-        clicked_piece.state = 'selected'
-        self.selected_piece = clicked_piece
-
-    def _clear_selection(self):
-        self.selected_piece.state = 'normal'
-        self.selected_piece = None
 
     def move_piece(self, piece, new_x, new_y):
         old_x, old_y = self.get_piece_pos(piece)

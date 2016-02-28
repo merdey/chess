@@ -4,7 +4,7 @@ import sys
 
 from board import Board
 from constants import tile_size, piece_inset, piece_size, piece_ranks
-from utils import get_tile_pos
+from utils import get_tile_pos, validate_move
 
 
 class Client:
@@ -16,6 +16,7 @@ class Client:
         self.state = 'main menu'
         self.buttons = []
         self._load_sprites()
+        self.selected_piece = None
 
     def _load_sprites(self):
         self.sprites = {}
@@ -48,12 +49,42 @@ class Client:
 
         if self.state == 'game running':
             x, y = get_tile_pos(*mouse_pos)
-            res = self.board.handle_click(self.active_player, x, y)
+            res = self._handle_board_click(x, y)
             if res in ('move', 'capture', 'castle', 'en_passant'):
                 self.active_player = 'Black' if self.active_player == 'White' else 'White'
             elif res == 'game_over':
                 self.state = 'game over'
             print('Active Player', self.active_player)
+
+    def _handle_board_click(self, x, y):
+        clicked_piece = self.board.get_piece(x, y)
+
+        if self.selected_piece:
+            res = validate_move(self.active_player, self.board, self.selected_piece, x, y)
+            if res == 'move' or res == 'capture':
+                self.board.move_piece(self.selected_piece, x, y)
+                self._clear_selection()
+                return res
+            elif res == 'castle':
+                # self.castle()
+                self._clear_selection()
+            elif res == 'en_passant':
+                # self.en_passant()
+                self._clear_selection()
+            elif res == 'illegal_move':
+                self._clear_selection()
+            return res
+
+        if clicked_piece and clicked_piece.color == self.active_player:
+            self._select_piece(clicked_piece)
+
+    def _select_piece(self, piece):
+        piece.state = 'selected'
+        self.selected_piece = piece
+
+    def _clear_selection(self):
+        self.selected_piece.state = 'normal'
+        self.selected_piece = None
 
     def draw(self):
         self.screen.fill((255, 255, 255))
@@ -93,7 +124,7 @@ class Client:
         pygame.display.flip()
 
     def _draw_piece(self, piece, x, y):
-        if piece.state == 'selected':
+        if piece == self.selected_piece:
             pygame.draw.rect(
                 self.screen,
                 (255, 255, 0),
