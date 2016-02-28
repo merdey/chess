@@ -32,6 +32,14 @@ class Client:
         self.state = 'game running'
         self.active_player = 'White'
 
+    def handle_events(self, events):
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.handle_click(pygame.mouse.get_pos())
+            elif event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
     def handle_click(self, mouse_pos):
         for button in self.buttons:
             if button.was_clicked(mouse_pos):
@@ -98,15 +106,8 @@ class Client:
 
     def run(self):
         while True:
-            for event in pygame.event.get():
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    res = self.handle_click(pygame.mouse.get_pos())
-                elif event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-
+            self.handle_events(pygame.event.get())
             self.draw()
-
             self.fps_clock.tick(50)
 
 
