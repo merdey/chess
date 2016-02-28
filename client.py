@@ -25,7 +25,7 @@ class Client:
                 key = color + rank
                 path_to_sprite = 'sprites/%s.png' % key
                 sprite = pygame.image.load(os.path.join(path_to_sprite))
-                self.sprites[key] = sprite
+                self.sprites[key] = pygame.transform.scale(sprite, (piece_size, piece_size))
 
     def start_game(self):
         self.board = Board()
