@@ -1,8 +1,9 @@
+import os
 import pygame
 import sys
 
 from board import Board
-from constants import tile_size, piece_inset
+from constants import tile_size, piece_inset, piece_size, piece_ranks
 
 
 class Client:
@@ -13,6 +14,16 @@ class Client:
         self.fps_clock = pygame.time.Clock()
         self.state = 'main menu'
         self.buttons = []
+        self._load_sprites()
+
+    def _load_sprites(self):
+        self.sprites = {}
+        for color in ('Black', 'White'):
+            for rank in piece_ranks:
+                key = color + rank
+                path_to_sprite = 'sprites/%s.png' % key
+                sprite = pygame.image.load(os.path.join(path_to_sprite))
+                self.sprites[key] = sprite
 
     def start_game(self):
         self.board = Board()
@@ -88,7 +99,8 @@ class Client:
             )
 
         piece_offset = (x * tile_size + piece_inset, y * tile_size + piece_inset)
-        self.screen.blit(piece.sprite, piece_offset)
+        k = piece.color + piece.rank
+        self.screen.blit(self.sprites[k], piece_offset)
 
     def run(self):
         while True:
