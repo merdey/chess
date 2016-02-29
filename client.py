@@ -66,7 +66,7 @@ class Client:
                 self._clear_selection()
                 return res
             elif res == 'castle':
-                # self.castle()
+                self.board.castle(self.selected_piece, x, y)
                 self._clear_selection()
             elif res == 'en_passant':
                 # self.en_passant()

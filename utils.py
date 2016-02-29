@@ -22,8 +22,11 @@ def validate_move(board, piece, x, y):
         return 'move'
     elif target_tile and (x, y) in attacks_allowed:
         return 'capture' if target_tile.rank != 'King' else 'game_over'
-    else:
-        return 'illegal_move'
+    elif is_valid_castling(board, piece, x, y):
+        return 'castle'
+
+
+    return 'illegal_move'
             
 
 def get_allowed_moves(board, piece, x, y):
@@ -105,29 +108,43 @@ def get_queen_moves(board, piece, x, y):
 
 
 def get_king_moves(board, piece, x, y):
-    moves_allowed = set()
-    attacks_allowed = set()
-    allowed = (
-        (x + 1, y),
-        (x - 1, y),
-        (x, y + 1),
-        (x, y - 1),
-        (x + 1, y + 1),
-        (x + 1, y - 1),
-        (x - 1, y + 1),
-        (x - 1, y - 1),
-    )
-    for a in allowed:
-        moves_allowed.add(a)
-        attacks_allowed.add(a)
+    moves_allowed, attacks_allowed = set(), set()
+    for move in itertools.chain(get_horizontal_moves(board, x, y, length=1),
+                                get_vertical_moves(board, x, y, length=1),
+                                get_diagonal_moves(board, x, y, length=1)):
+        moves_allowed.add(move)
+        attacks_allowed.add(move)
     return moves_allowed, attacks_allowed
 
 
+def is_valid_castling(board, piece, x, y):
+    if x == 2:
+        x = 0
+    elif x == 6:
+        x = 7
+    else:
+        return False
+
+    target_tile = board.get_piece(x, y)
+    if not target_tile or target_tile.rank != 'Rook' or piece.rank != 'King':
+        return False
+    if board.has_piece_moved(piece) or board.has_piece_moved(target_tile):
+        return False
+
+    piece_x, _ = board.get_piece_pos(piece)
+    start = min(piece_x, x)
+    end = max(piece_x, x)
+    for i in range(start + 1, end):
+        if board.get_piece(i, y):
+            return False
+
+    return True
+
+
+
 def get_horizontal_moves(board, x, y, length=8):
-    for allowed in itertools.chain(
-        line_generator(board, x, y, 1, 0, length),
-        line_generator(board, x, y, -1, 0, length),
-    ):
+    for allowed in itertools.chain(line_generator(board, x, y, 1, 0, length),
+                                   line_generator(board, x, y, -1, 0, length)):
         yield allowed
 
 

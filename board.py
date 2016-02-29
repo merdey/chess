@@ -44,6 +44,18 @@ class Board:
             (new_x, new_y),
         ))
 
+    def castle(self, piece, x, y):
+        if x == 2:
+            rook = self.get_piece(0, y)
+            rook_x = 3
+        else:
+            rook = self.get_piece(7, y)
+            rook_x = 5
+
+        self.move_piece(piece, x, y)
+        self.move_piece(rook, rook_x, y)
+
+
     def has_piece_moved(self, piece):
         for move in self.move_history:
             if move[0] == piece:
