@@ -1,13 +1,13 @@
-from constants import tile_size
 from piece import Piece
 from utils import construct_board, enumerate_coordinates
 
 class Board:
     def __init__(self):
         self.board = construct_board()
+        self._set_pieces()
         self.move_history = []
 
-    def set_pieces(self):
+    def _set_pieces(self):
         for x, y in enumerate_coordinates(self.board):
             # Determine color
             if y == 0 or y == 1:

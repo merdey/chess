@@ -1,17 +1,20 @@
 import os
 import pygame
 import sys
+import time
 
-from board import Board
 from constants import tile_size, piece_inset, piece_size, piece_ranks
-from utils import get_tile_pos, validate_move
+from game import Game
+from utils import get_tile_pos
 
 
 class Client:
+    '''Handles drawing to screen and accepting user interaction'''
+
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((640, 640))
-        pygame.display.set_caption("Game of Life")
+        pygame.display.set_caption("Chess")
         self.fps_clock = pygame.time.Clock()
         self.state = 'main menu'
         self.buttons = []
@@ -28,10 +31,8 @@ class Client:
                 self.sprites[key] = pygame.transform.scale(sprite, (piece_size, piece_size))
 
     def start_game(self):
-        self.board = Board()
-        self.board.set_pieces()
+        self.game = Game()
         self.state = 'game running'
-        self.active_player = 'White'
 
     def handle_events(self, events):
         for event in events:
@@ -49,65 +50,47 @@ class Client:
 
         if self.state == 'game running':
             x, y = get_tile_pos(*mouse_pos)
-            res = self._handle_board_click(x, y)
+            clicked_piece = self.game.get_piece(x, y)
+            if self.selected_piece:
+                res = self.game.move_piece(self.selected_piece, x, y)
+            elif clicked_piece and clicked_piece.color == self.game.active_player:
+                self._select_piece(clicked_piece)
+                res = 'select_piece'
+            else:
+                res = 'invalid'
+
             if res in ('move', 'capture', 'castle', 'en_passant'):
-                self.active_player = 'Black' if self.active_player == 'White' else 'White'
+                self._clear_selection()
             elif res == 'game_over':
                 self.state = 'game over'
-            print('Active Player', self.active_player)
-
-    def _handle_board_click(self, x, y):
-        clicked_piece = self.board.get_piece(x, y)
-
-        if self.selected_piece:
-            res = validate_move(self.board, self.selected_piece, x, y)
-            if res == 'move' or res == 'capture':
-                self.board.move_piece(self.selected_piece, x, y)
-                self._clear_selection()
-                return res
-            elif res == 'castle':
-                self.board.castle(self.selected_piece, x, y)
-                self._clear_selection()
-            elif res == 'en_passant':
-                # self.en_passant()
-                self._clear_selection()
-            elif res == 'illegal_move':
-                self._clear_selection()
-            return res
-
-        if clicked_piece and clicked_piece.color == self.active_player:
-            self._select_piece(clicked_piece)
 
     def _select_piece(self, piece):
-        piece.state = 'selected'
         self.selected_piece = piece
 
     def _clear_selection(self):
-        self.selected_piece.state = 'normal'
         self.selected_piece = None
 
     def draw(self):
         self.screen.fill((255, 255, 255))
 
         if self.state == 'main menu':
-            self.buttons = [Button(200, 200, 200, 200, 'Start', self.start_game)]
+            self.buttons = [Button(200, 200, 200, 200, 'Start New Game', self.start_game)]
         elif self.state == 'game running':
             self.buttons = []
             self.screen.fill((0, 255, 0))
-            self.draw_board()
+            self._draw_board()
         elif self.state == 'game over':
             self.buttons = [Button(200, 200, 200, 200, 'Start Again', self.start_game)]
 
         for button in self.buttons: button.draw(self.screen)
-
         pygame.display.update()
 
-    def draw_board(self):
+    def _draw_board(self):
         self._draw_tiling()
         self._draw_pieces()
 
     def _draw_tiling(self):
-        for x, y in self.board.enumerate_coordinates():
+        for x, y in self.game.enumerate_board_coordinates():
             if x % 2 == y % 2:
                 color = (255, 255, 255)
             else:
@@ -117,8 +100,8 @@ class Client:
             pygame.draw.rect(self.screen, color, rect)
 
     def _draw_pieces(self):
-        for x, y in self.board.enumerate_coordinates():
-            piece = self.board.get_piece(x, y)
+        for x, y in self.game.enumerate_board_coordinates():
+            piece = self.game.get_piece(x, y)
             if piece is not None:
                 self._draw_piece(piece, x, y)
         pygame.display.flip()
@@ -139,6 +122,11 @@ class Client:
         while True:
             self.handle_events(pygame.event.get())
             self.draw()
+
+            if self.state == 'game running' and self.game.active_player_is_ai():
+                self.game.make_ai_move()
+                time.sleep(1)
+
             self.fps_clock.tick(50)
 
 
@@ -164,8 +152,3 @@ class Button:
 
     def draw(self, screen):
         screen.blit(self.textSurfaceObj, self.textRectObj)
-
-
-if __name__ == '__main__':
-    client = Client()
-    client.run()

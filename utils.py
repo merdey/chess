@@ -13,11 +13,12 @@ def enumerate_coordinates(board):
             yield x, y
 
 
-def validate_move(board, piece, x, y):
-    current_x, current_y = board.get_piece_pos(piece)
-    target_tile = board.get_piece(x, y)
+def validate_move(board, player, piece, x, y):
+    if piece.color != player:
+        return 'illegal_move'
 
-    moves_allowed, attacks_allowed = get_allowed_moves(board, piece, current_x, current_y)
+    target_tile = board.get_piece(x, y)
+    moves_allowed, attacks_allowed = get_allowed_moves(board, piece)
     if target_tile is None and (x, y) in moves_allowed:
         return 'move'
     elif target_tile and (x, y) in attacks_allowed:
@@ -29,7 +30,7 @@ def validate_move(board, piece, x, y):
     return 'illegal_move'
             
 
-def get_allowed_moves(board, piece, x, y):
+def get_allowed_moves(board, piece):
     rule_mapping = {
         'Pawn': get_pawn_moves,
         'Rook': get_rook_moves,
@@ -39,11 +40,12 @@ def get_allowed_moves(board, piece, x, y):
         'King': get_king_moves,
     }
 
-    moves_allowed, attacks_allowed = rule_mapping[piece.rank](board, piece, x, y)
+    moves_allowed, attacks_allowed = rule_mapping[piece.rank](board, piece)
     return moves_allowed, attacks_allowed
 
 
-def get_pawn_moves(board, piece, x, y):
+def get_pawn_moves(board, piece):
+    x, y = board.get_piece_pos(piece)
     moves_allowed = set()
     attacks_allowed = set()
     if piece.color == 'White':
@@ -61,7 +63,8 @@ def get_pawn_moves(board, piece, x, y):
     return moves_allowed, attacks_allowed
 
 
-def get_rook_moves(board, piece, x, y):
+def get_rook_moves(board, piece):
+    x, y = board.get_piece_pos(piece)
     moves_allowed, attacks_allowed = set(), set()
     for move in itertools.chain(get_horizontal_moves(board, x, y),
                                 get_vertical_moves(board, x, y)):
@@ -70,7 +73,8 @@ def get_rook_moves(board, piece, x, y):
     return moves_allowed, attacks_allowed
 
 
-def get_knight_moves(board, piece, x, y):
+def get_knight_moves(board, piece):
+    x, y = board.get_piece_pos(piece)
     moves_allowed = set()
     attacks_allowed = set()
     allowed = (
@@ -89,7 +93,8 @@ def get_knight_moves(board, piece, x, y):
     return moves_allowed, attacks_allowed
 
 
-def get_bishop_moves(board, piece, x, y):
+def get_bishop_moves(board, piece):
+    x, y = board.get_piece_pos(piece)
     moves_allowed, attacks_allowed = set(), set()
     for move in get_diagonal_moves(board, x, y):
         moves_allowed.add(move)
@@ -97,7 +102,8 @@ def get_bishop_moves(board, piece, x, y):
     return moves_allowed, attacks_allowed
             
             
-def get_queen_moves(board, piece, x, y):
+def get_queen_moves(board, piece):
+    x, y = board.get_piece_pos(piece)
     moves_allowed, attacks_allowed = set(), set()
     for move in itertools.chain(get_horizontal_moves(board, x, y),
                                 get_vertical_moves(board, x, y),
@@ -107,7 +113,8 @@ def get_queen_moves(board, piece, x, y):
     return moves_allowed, attacks_allowed
 
 
-def get_king_moves(board, piece, x, y):
+def get_king_moves(board, piece):
+    x, y = board.get_piece_pos(piece)
     moves_allowed, attacks_allowed = set(), set()
     for move in itertools.chain(get_horizontal_moves(board, x, y, length=1),
                                 get_vertical_moves(board, x, y, length=1),
